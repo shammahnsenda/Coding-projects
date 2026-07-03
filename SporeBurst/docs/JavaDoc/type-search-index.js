@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html","k":"18"},{"p":"acsse.csc2a.bio.gui","l":"ChamberDisplayBox"},{"p":"acsse.csc2a.bio.generator","l":"E_BURST_SIZE","k":"9"},{"p":"acsse.csc2a.bio.threading","l":"SporeBurstTask"}];updateSearchResults();
