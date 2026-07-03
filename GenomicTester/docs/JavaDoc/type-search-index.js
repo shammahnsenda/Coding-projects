@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html","k":"18"},{"p":"acsse.csc2a.bio.file","l":"ChamberFileHandler"},{"p":"acsse.csc2a.bio.model","l":"IUpdatable","k":"10"}];updateSearchResults();
