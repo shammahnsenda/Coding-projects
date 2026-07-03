@@ -1,0 +1,96 @@
+CREATE DATABASE Cinema;
+
+
+CREATE TABLE Customer(
+CustomerID INT IDENTITY(1,1) UNIQUE NOT NULL,
+CustomerName VARCHAR(50) NOT NULL,
+ContactNo VARCHAR(10) NOT NULL,
+Email VARCHAR(50) NOT NULL,
+PRIMARY KEY(CustomerID)
+);
+
+CREATE TABLE Booking(
+BookingID INT IDENTITY(1,1) UNIQUE NOT NULL,
+NumTickets INT NOT NULL,
+BookingDate Date NOT NULL,
+BookingTime TIME NOT NULL,
+CustomerID INT NOT NULL,
+PRIMARY KEY(BookingID),
+FOREIGN KEY(CustomerID) REFERENCES Customer(CustomerID)
+);
+
+CREATE TABLE Movie(
+MovieID INT IDENTITY(1,1) UNIQUE NOT NULL,
+Title VARCHAR(50) NOT NULL,
+GENRE VARCHAR(100)NOT NULL,
+Duration INT NOT NULL,
+Age INT NOT NULL,
+Price DECIMAL(10,2) NOT NULL,
+PRIMARY KEY(MovieID)
+);
+
+CREATE TABLE MovieBooking(
+MovieBookingID INT IDENTITY(1,1) UNIQUE NOT NULL,
+MovieID INT NOT NULL,
+BookingID INT NOT NULL,
+BookingDate Date NOT NULL,
+PRIMARY KEY(MovieBookingID),
+FOREIGN KEY(MovieID) REFERENCES Movie(MovieID),
+FOREIGN KEY(BookingID) REFERENCES Booking(BookingID)
+);
+
+
+
+INSERT INTO Customer (CustomerName, ContactNo, Email)
+VALUES('Jayson','0958374635', 'jayson@gmail.com'),
+	  ('Cole','0879685632', 'cole@gmail.com');
+
+INSERT INTO Booking(NumTickets,BookingDate,BookingTime,CustomerID)
+VALUES(5, '2025-03-17', '12:05', 1),
+	  (2, '2025-04-11', '16:05', 2);
+
+INSERT INTO Movie(Title,GENRE,Duration,Age,Price)
+VALUES('Project Hail Mary', 'Horror', 3, 18, 320.95),
+	  ('Thor Ragnarok', 'Action', 2, 14, 400.95);
+
+INSERT INTO MovieBooking(MovieID,BookingID,BookingDate)
+VALUES(1, 2, '2025-03-10'),
+	  (2, 1, '2025-12-07');
+
+
+SELECT AVG(Price) AS AveragePrice
+FROM Movie;
+
+
+SELECT DISTINCT c.*
+FROM Customer c
+INNER JOIN Booking b ON c.CustomerID = b.CustomerID
+INNER JOIN MovieBooking mb ON mb.BookingID = b.BookingID
+INNER JOIN Movie m ON mb.MovieID = m.MovieID 
+WHERE m.Title ='Project Hail Mary';
+
+
+SELECT c.*
+FROM Customer c
+INNER JOIN Booking b ON c.CustomerID = b.CustomerID
+INNER JOIN MovieBooking mb ON mb.BookingID = b.BookingID
+WHERE mb.BookingDate BETWEEN '2025-12-01' AND '2025-12-31';
+
+
+SELECT c.CustomerName,SUM(b.NumTickets) AS [Total Tickets]
+FROM Customer c 
+INNER JOIN Booking b ON c.CustomerID = b.CustomerID
+GROUP BY c.CustomerName;
+
+
+SELECT c.CustomerName
+FROM 
+	(Select MovieID , Count(Title) as Total
+	 FROM Movie Group by MovieID
+	 )as Counting, Customer c
+
+INNER JOIN Booking b ON c.CustomerID = b.CustomerID
+INNER JOIN MovieBooking mb ON mb.BookingID = b.BookingID
+INNER JOIN Movie m ON mb.MovieID = m.MovieID
+Where Total > 1
+GROUP BY c.CustomerName ;
