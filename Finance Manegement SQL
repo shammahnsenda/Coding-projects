@@ -1,0 +1,145 @@
+Create Database Finance;
+
+CREATE TABLE Advisor (
+    RegistrationNumber CHAR(7) PRIMARY KEY,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Client (
+    ClientID INT PRIMARY KEY ,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    ContactNumber VARCHAR(15) NOT NULL
+);
+
+CREATE TABLE Consultation (
+    ConsultationID INT PRIMARY KEY ,
+    Date DATE NOT NULL,
+    Time TIME NOT NULL,
+    RegistrationNumber CHAR(7),
+    ClientID INT,
+    FOREIGN KEY (RegistrationNumber) REFERENCES Advisor(RegistrationNumber),
+    FOREIGN KEY (ClientID) REFERENCES Client(ClientID)
+);
+
+CREATE TABLE Invoice (
+    InvoiceID INT PRIMARY KEY ,
+    Amount DECIMAL(10,2) NOT NULL,
+    Status VARCHAR(10) ,
+    ConsultationID INT UNIQUE,
+    FOREIGN KEY (ConsultationID) REFERENCES Consultation(ConsultationID)
+);
+
+INSERT INTO Advisor VALUES
+('ADV0001','John','Smith'),
+('ADV0002','Sarah','Johnson'),
+('ADV0003','Michael','Brown'),
+('ADV0004','Emily','Davis'),
+('ADV0005','David','Wilson');
+
+INSERT INTO Client VALUES
+(1,'Liam','Moyo','0712345678'),
+(2,'Aisha','Naidoo','0723456789'),
+(3,'Thabo','Nkosi','0734567890'),
+(4,'Emma','Smith','0745678901'),
+(5,'Noah','Brown','0756789012');
+
+INSERT INTO Consultation VALUES
+(1,'2026-05-01','09:00','ADV0001',1),
+(2,'2026-05-02','10:00','ADV0002',2),
+(3,'2026-05-03','11:00','ADV0003',3),
+(4,'2026-05-04','12:00','ADV0004',4),
+(5,'2026-05-05','13:00','ADV0005',5),
+(6,'2026-05-06','09:30','ADV0001',2),
+(7,'2026-05-07','10:30','ADV0002',3),
+(8,'2026-05-08','11:30','ADV0003',4),
+(9,'2026-05-09','12:30','ADV0004',5),
+(10,'2026-05-10','13:30','ADV0005',1),
+(11,'2026-05-11','09:00','ADV0001',3),
+(12,'2026-05-12','10:00','ADV0002',4),
+(13,'2026-05-13','11:00','ADV0003',5),
+(14,'2026-05-14','12:00','ADV0004',1),
+(15,'2026-05-15','13:00','ADV0005',2);
+
+INSERT INTO Invoice VALUES
+(1,500.00,'Paid',1),
+(2,600.00,'Unpaid',2),
+(3,700.00,'Paid',3),
+(4,800.00,'Unpaid',4),
+(5,900.00,'Unpaid',5),
+(6,650.00,'Paid',6),
+(7,750.00,'Unpaid',7),
+(8,850.00,'Paid',8),
+(9,950.00,'Unpaid',9),
+(10,1000.00,'Unpaid',10);
+
+SELECT A.FirstName, A.LastName, COUNT(C.ConsultationID) AS TotalConsultations
+FROM Advisor A
+JOIN Consultation C 
+    ON A.RegistrationNumber = C.RegistrationNumber
+GROUP BY A.RegistrationNumber, A.FirstName, A.LastName
+HAVING COUNT(C.ConsultationID) = (
+    SELECT MAX(ConsultCount)
+    FROM (
+        SELECT COUNT(*) AS ConsultCount
+        FROM Consultation
+        GROUP BY RegistrationNumber
+    ) AS Temp
+);
+
+SELECT 
+    C.ConsultationID,
+    C.Date,
+    C.Time,
+    A.FirstName AS AdvisorFirstName,
+    A.LastName AS AdvisorLastName,
+    CL.FirstName AS ClientFirstName,
+    CL.LastName AS ClientLastName
+FROM Consultation C
+JOIN Advisor A 
+    ON C.RegistrationNumber = A.RegistrationNumber
+JOIN Client CL 
+    ON C.ClientID = CL.ClientID
+WHERE C.Date BETWEEN 
+    DATEADD(day, 7, CAST(GETDATE() AS date))
+    AND DATEADD(day, 14, CAST(GETDATE() AS date))
+ORDER BY C.Date, C.Time;
+
+SELECT 
+    CL.ClientID,
+    CL.FirstName,
+    CL.LastName,
+
+    SUM(I.Amount) AS TotalPastDueAmount,
+
+    SUM(
+        I.Amount * 
+        CASE 
+            WHEN DATEDIFF(day, DATEADD(day, 28, C.Date), GETDATE()) > 0
+            THEN DATEDIFF(day, DATEADD(day, 28, C.Date), GETDATE())
+            ELSE 0
+        END * 0.005
+    ) AS TotalInterest,
+
+    SUM(
+        I.Amount + 
+        (I.Amount * 
+            CASE 
+                WHEN DATEDIFF(day, DATEADD(day, 28, C.Date), GETDATE()) > 0
+                THEN DATEDIFF(day, DATEADD(day, 28, C.Date), GETDATE())
+                ELSE 0
+            END * 0.005)
+    ) AS TotalAmountDue
+
+FROM Client CL
+JOIN Consultation C 
+    ON CL.ClientID = C.ClientID
+JOIN Invoice I 
+    ON C.ConsultationID = I.ConsultationID
+WHERE 
+    I.Status = 'Unpaid'
+GROUP BY 
+    CL.ClientID, CL.FirstName, CL.LastName
+ORDER BY 
+    TotalAmountDue DESC;
