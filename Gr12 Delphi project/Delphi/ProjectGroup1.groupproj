@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{6A1627DC-9A00-4AD9-B0EB-E70B3BDEF40C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="FarmingSystem_p.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="farming_u.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="FarmingSystem_p">
+        <MSBuild Projects="FarmingSystem_p.dproj"/>
+    </Target>
+    <Target Name="FarmingSystem_p:Clean">
+        <MSBuild Projects="FarmingSystem_p.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FarmingSystem_p:Make">
+        <MSBuild Projects="FarmingSystem_p.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="farming_u">
+        <MSBuild Projects="farming_u.dproj"/>
+    </Target>
+    <Target Name="farming_u:Clean">
+        <MSBuild Projects="farming_u.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="farming_u:Make">
+        <MSBuild Projects="farming_u.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="FarmingSystem_p;farming_u"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="FarmingSystem_p:Clean;farming_u:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="FarmingSystem_p:Make;farming_u:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
