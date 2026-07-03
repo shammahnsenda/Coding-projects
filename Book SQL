@@ -1,0 +1,89 @@
+CREATE TABLE Customer(
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) NOT NULL,
+    PhoneNumber VARCHAR(15) NOT NULL,
+    DeliveryAddress VARCHAR(200) NOT NULL
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    OrderDate DATE,
+    CustomerID INT,
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+);
+
+CREATE TABLE Book (
+    BookID INT PRIMARY KEY,
+    Title VARCHAR(100),
+    Author VARCHAR(100),
+    ISBN VARCHAR(20),
+    CurrentPrice DECIMAL(10,2),
+    Genre VARCHAR(50)
+);
+
+CREATE TABLE OrderedItems(
+    BookID INT,
+    OrderID INT,
+    Quantity INT,
+    PurchasePrice DECIMAL(10,2),
+    PRIMARY KEY (OrderID, BookID),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (BookID) REFERENCES Book(BookID)
+);
+
+
+INSERT INTO Customer VALUES
+(1, 'John Smith', 'john@gmail.com', '0821234567', '12 Main Road, Johannesburg'),
+(2, 'Sarah Jones', 'sarah@gmail.com', '0839876543', '45 King Street, Pretoria');
+
+INSERT INTO Book VALUES
+(101, 'The Art of War', 'Sun Tzu', '9781599869773', 250.00, 'Strategy'),
+(102, 'Clean Code', 'Robert Martin', '9780132350884', 450.00, 'Programming');
+
+INSERT INTO Orders VALUES
+(1001, '2025-02-15', 1),
+(1002, '2025-03-20', 2);
+
+INSERT INTO OrderedItems VALUES
+(101, 1001, 2, 250.00),
+(102, 1002, 1, 450.00);
+
+
+SELECT DISTINCT c.CustomerName, c.Email, c.PhoneNumber
+FROM Customer c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+WHERE o.OrderDate BETWEEN '2025-01-01' AND '2025-03-31';
+
+
+SELECT DISTINCT c.CustomerName
+FROM Customer c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+JOIN OrderedItems oi ON o.OrderID = oi.OrderID
+JOIN Book b ON oi.BookID = b.BookID
+WHERE b.Title = 'The Art of War';
+
+
+SELECT c.CustomerName, b.Title, oi.Quantity
+FROM Customer c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+JOIN OrderedItems oi ON o.OrderID = oi.OrderID
+JOIN Book b ON oi.BookID = b.BookID;
+
+
+SELECT AVG(OrderTotal) AS AverageAmountSpent
+FROM
+(
+    SELECT OrderID, SUM(Quantity * PurchasePrice) AS OrderTotal
+    FROM OrderedItems
+    GROUP BY OrderID
+) AS OrderTotals;
+
+
+SELECT TOP 1 c.CustomerName,
+SUM(oi.Quantity * oi.PurchasePrice) AS TotalSpent
+FROM Customer c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+JOIN OrderedItems oi ON o.OrderID = oi.OrderID
+GROUP BY c.CustomerName
+ORDER BY TotalSpent DESC;
